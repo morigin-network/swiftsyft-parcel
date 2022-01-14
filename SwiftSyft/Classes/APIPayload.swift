@@ -169,3 +169,15 @@ struct FederatedReport: Codable {
         case diff
     }
 }
+
+struct ParcelFederatedReport: Codable {
+    let workerId: String
+    let requestKey: String
+    let diff: String
+
+    enum CodingKeys: String, CodingKey {
+        case workerId = "worker_id"
+        case requestKey = "request_key"
+        case diff
+    }
+}

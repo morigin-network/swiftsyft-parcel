@@ -6,6 +6,7 @@ enum SignallingMessagesRequest {
     case authRequest(authToken: String?, modelName: String, modelVersion: String)
     case cycleRequest(CycleRequest)
     case modelReport(FederatedReport)
+    case modelParcelReport(ParcelFederatedReport)
 
     case getProtocolRequest(workerId: UUID, scopeId: UUID, protocolId: String)
     case getProtocolResponse
@@ -252,6 +253,12 @@ extension SignallingMessagesRequest: Encodable {
             try dataPayloadContainer.encode(federatedReport.workerId, forKey: .workerId)
             try dataPayloadContainer.encode(federatedReport.requestKey, forKey: .requestKey)
             try dataPayloadContainer.encode(federatedReport.diff, forKey: .diff)
+        case .modelParcelReport(let parcelFederatedReport):
+            try container.encode("model-centric/report", forKey: .type)
+            var dataPayloadContainer = container.nestedContainer(keyedBy: ParcelFederatedReport.CodingKeys.self, forKey: .data)
+            try dataPayloadContainer.encode(parcelFederatedReport.workerId, forKey: .workerId)
+            try dataPayloadContainer.encode(parcelFederatedReport.requestKey, forKey: .requestKey)
+            try dataPayloadContainer.encode(parcelFederatedReport.diff, forKey: .diff)
         case .getProtocolRequest(let workerUUID, let scopeUUID, let protocolId):
             try container.encode("get-protocol", forKey: .type)
             var dataPayloadContainer = container.nestedContainer(keyedBy: DataPayloadCodingKeys.self, forKey: .data)

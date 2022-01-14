@@ -638,6 +638,40 @@ public class SyftJob: SyftJobProtocol {
         }
     }
 
+    public func reportParcelDiff(diffDocumentId: String) {
+
+        guard let workerId = self.workerId, let requestKey = self.requestKey else {
+            return
+        }
+
+        let modelReportBody = ParcelFederatedReport(workerId: workerId, requestKey: requestKey, diff: diffDocumentId)
+
+        switch self.connectionType {
+        case .http:
+
+            let jsonEncoder = JSONEncoder()
+
+            let cycleRequestURL = self.url.appendingPathComponent("model-centric/report")
+            var reportRequest: URLRequest = URLRequest(url: cycleRequestURL)
+            reportRequest.httpMethod = "POST"
+            reportRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            reportRequest.addValue("application/json", forHTTPHeaderField: "Accept")
+
+            reportRequest.httpBody = try? jsonEncoder.encode(modelReportBody)
+
+            URLSession.shared.dataTask(with: reportRequest) { (responseData, _, _) in
+                if let responseData = responseData {
+                    debugPrint("Model report response: \(String(bytes: responseData, encoding: .utf8)!)")
+                }
+            }.resume()
+
+        case .socket(url: _, let sendMessageSubject, _):
+
+            sendMessageSubject.send(.modelParcelReport(modelReportBody))
+
+        }
+    }
+
     /// Registers a closure to execute when the job is accepted into a training cycle.
     /// - Parameter execute: Closure that accepts the training plan (`SyftPlan`), training configuration (`FederatedClientConfig`) and reporting closure (`ModelReport`).
     /// All of these objects will be used during training.
